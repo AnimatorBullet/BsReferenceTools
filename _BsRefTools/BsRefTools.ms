@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 03:37:38
+ * @LastEditTime: 2021-01-03 03:54:01
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -385,7 +385,7 @@ rcmenu RCmenuRefConfig
 		if(doesFileExist dlFile) do fnDelFileDir dlFile
 		dotnetWebClient.downloadFile dlURL dlFile
 		dotnetWebClient.dispose()
-		format "\t_BsRefTools.mzp 下载完成,准备安装\n"
+		messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
 		filein dlFile
 	)
 
