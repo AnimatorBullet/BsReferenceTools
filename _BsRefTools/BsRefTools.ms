@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 04:08:07
+ * @LastEditTime: 2021-01-03 04:12:27
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -378,11 +378,15 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
+		local dlRefreshURL = "https://purge.jsdelivr.net/gh/AnimatorBullet/BsReferenceTools/_BsRefTools/_BsRefTools.mzp"
+		local dlRefreshTempfile = (getdir #temp) + "\\BsDownload\\BsTemp.mzp"
 		local dlURL = "https://cdn.jsdelivr.net/gh/AnimatorBullet/BsReferenceTools/_BsRefTools/_BsRefTools.mzp"
 		local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
 		if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
 		(makedir ((getdir #temp) + "\\BsDownload"))
 		if(doesFileExist dlFile) do fnDelFileDir dlFile
+		if(doesFileExist dlRefreshTempfile) do fnDelFileDir dlRefreshTempfile
+		dotnetWebClient.downloadFile dlRefreshURL dlFile
 		dotnetWebClient.downloadFile dlURL dlFile
 		dotnetWebClient.dispose()
 		messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
