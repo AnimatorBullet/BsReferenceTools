@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-02 19:05:09
+ * @LastEditTime: 2021-01-03 02:57:42
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -31,11 +31,13 @@ global iniRefFolder3    = (itemsFolder name:"<＋＋＋>" dir:"")
 global iniRefFolder4    = (itemsFolder name:"<＋＋＋>" dir:"")
 global iniFilterRefName = #()
 Global posMouMove       = [0,0]
-global tempAddFolderID	= "0"
+global tempAddFolderID  = "0"
 Global arrRefType       = #("静帧","动图","视频","剪切板")
-global typePic = #(".png",".jpg",".jpeg",".bmp")
-global typeGif = #(".gif")
-global typeVedio = #(".avi",".mp4",".mkv")
+global typePic          = #(".png",".jpg",".jpeg",".bmp")
+global typeGif          = #(".gif")
+global typeVedio        = #(".avi",".mp4",".mkv")
+global arrAllRefFiles   = #()
+global arrAllRefFolders = #()
 
 global myfgColor
 global myClickColor
@@ -147,10 +149,13 @@ fn fnCreateRefPlane filePath =  --获取剪切板的图片, 貌似只支持单�
 (
     tempRefImage = dotDrawingImage.fromfile filePath 
     planeRef = plane width:tempRefImage.width length:tempRefImage.height lengthsegs:1 widthsegs:1 
-    planeRef.rotation.x_rotation = 90
+	planeRef.rotation.x_rotation = 90
+	planeRef.name = "planeReferencePic"
     bitmapRef = Bitmaptexture fileName:filePath
     planeRef.material = standard diffuseMap:(bitmapRef) showInViewport:true
-    planeRef.material.name = "matReferencePic"
+	planeRef.material.name = "matReferencePic"
+	enableHardwareMaterial planeRef.material true
+	showHWTextureMap planeRef.material true
 )
 
 fn fnGetClipboardPic =
@@ -159,9 +164,10 @@ fn fnGetClipboardPic =
     if dotNetClipboard.ContainsFileDropList() do ---获取剪切板的本地图片, 可多个
     (
         arrRefPic = #()
-        fileList = dotNetClipboard.GetFileDropList()
-        -- for i = 0 to (fileList.count - 1) do (fnCreateRefPlane (fileList.item i))
-        for i = 0 to (fileList.count - 1) do (append arrRefPic (fileList.item i))
+		fileList = dotNetClipboard.GetFileDropList()
+		print fileList
+        for i = 0 to (fileList.count - 1) do (fnCreateRefPlane (fileList.item i))
+        -- for i = 0 to (fileList.count - 1) do (append arrRefPic (fileList.item i))
     )
 )
 
@@ -169,18 +175,21 @@ rcmenu RCmenuRefConfig
 (
 	local myMs = (getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms"
     local startupPath = (getDir #StartupScripts)+ "\\" + "BsRefTools.ms"
+	local dotnetWebClient = dotNetObject "System.Net.WebClient"
 
     subMenu "初见"
     (menuItem menuTips1 "    双击文件创建参考" enabled:false
-    menuItem menuTips2 "    右击文件打开菜单" enabled:false)
+	menuItem menuTips2 "    右击文件打开菜单" enabled:false
+	menuItem menuUpdate "下载更新")
 
 	subMenu "工具栏按钮"
 	(menuItem submConfigAddToolBar "添加"
 	menuItem submConfigDelToolBar "去除")
 
-    subMenu "设置"
-    (menuItem submConfigHighDpi "设置高分辨率"
-	menuItem submConfigClearTempRef "清理临时目录"
+    subMenu "更多功能"
+	(menuItem submConfigHighDpi "设置高分辨率"
+	menuItem submConfigCleanMat "清理并整理材质球"
+	menuItem submConfigClearTempRef "清理参考图暂存目录"
 	menuItem submConfigAutoLoad "是否自启")
     
     menuItem menuJoinGroup "🐧交流小群"
@@ -262,6 +271,54 @@ rcmenu RCmenuRefConfig
 		) catch(messageBox "请手动处理Toolbar!             \r\n" title: "错误!")
 	)
 
+	fn fnCleanRefPlaneAndMat =
+	(
+		TempMatArray = #()
+		for i in Objects do	
+		(
+			if i.Material != undefined do 
+			(if (FindItem TempMatArray i.Material) == 0 do
+				append  TempMatArray i.material )
+			if i.name == "planeReferencePic" do delete i
+		)
+		while  SceneMaterials.count > 0 do (deleteItem SceneMaterials 1)	
+		for i in TempMatArray do append SceneMaterials i
+		disableSceneRedraw()
+		if scenematerials.count>0 and geometry.count>0 do
+		(
+			s = scenematerials.count
+			x=int(s/24)---计算取整
+			y=mod s 24 ---计算余数
+			if k== undefined then k=1
+			if k > x+2 do k=1
+			if y>0 and k == x+1 then
+			(
+				for j=1 to 24 do
+				(
+					new_mat_name = (j+24*(k-1)) as string + " - Default"
+					meditMaterials[j] = standard name:new_mat_name
+				)
+				for i = 1 to y do
+				(
+					meditMaterials[i] = sceneMaterials[i+24*(k-1)]
+				)
+				
+			)else
+			(
+				for j=1 to 24 do
+				(
+					meditMaterials[j]=sceneMaterials[j+24*(k-1)]
+				)
+			)
+			k=k+1
+			print ("当前场景整理后包含" + s as string+"个材质。")
+			if k==x+1 and y==0 do k=1
+			if k==x+2 and y>0 do k=1
+		)
+		if scenematerials.count==0 do (pushPrompt ("本场景没有任何材质"))
+		enableSceneRedraw()
+	)
+
     on RCmenuRefConfig open do
 	(
 		if(SIOFile.Exists startupPath) then (submConfigAutoLoad.checked = true)
@@ -303,6 +360,33 @@ rcmenu RCmenuRefConfig
 		addToolBarButton "BsRefTools" "BulletTools" "BsRefTools" remove: true
 	)
 
+	on submConfigHighDpi picked do 
+	(
+		-- NitrousGraphicsManager.SetProceduralTextureSizeLimit 4096 true
+		NitrousGraphicsManager.SetTextureSizeLimit 4096 true
+		NitrousGraphicsManager.SetBackgroundTextureSizeLimit 4096 true
+
+		messagebox ("ViewportConfiguration-DisplayPerformance\r\n中的Maximum已设置为4096\r\n" + \
+			"默认设置是1024,512,1024,可手动还原~                    ")
+	)
+
+	on submConfigCleanMat picked do with undo on
+	(
+		if (queryBox "是否彻底清理所有参考图并整理材质球？      \r\n" \
+		title:"清理参考图" beep:false) then
+		(
+			fnCleanRefPlaneAndMat ()
+		)
+	)
+
+	on dotnetWebClient picked do 
+	(
+		local dlURL = ""
+		local dlDir = (getdir #temp) + "\\BsDownload\\"
+		dotnetWebClient.downloadFile dlURL dlDir
+		filein (dlDir + "_BsRefTools.mzp")
+	)
+
 	on menuJoinGroup picked do 
 	(
 		if (queryBox "是否加入个人分享交流群？          \r\n(游戏，动画爱好者休闲吹水正能量分享群)\r\n        " \
@@ -324,18 +408,6 @@ rollout rolPreviewRef ""
     button btnNextPic "→" width:30 height:20 pos:[40,5]
 
     slider sldRefFrame "" orient:#horizontal  ticks:0 range:[1,1,1] pos:[80,5] width:100
-
-    -- if (queryBox "是否切换高分辨率贴图显示？      \r\n( 会改变显示贴图精度 )\r\n        " \
-    -- 		title:"切换高分辨率贴图显示" beep:false) then
-    -- (
-        
-    -- )
-
-    -- if (queryBox "是否彻底清理参考图？      \r\n" \
-    -- 		title:"清理参考图" beep:false) then
-    -- (
-    --     shellLaunch tempSavePath ""
-    -- )
 
     fn fnOpenPic filePicPath =
     (
@@ -465,12 +537,12 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	button btnRefreshFolder "R" align:#left border:false \
 	height:20 width:25 pos:[278,12] tooltip:"左：刷新列表\r\n右：重置场景"
 	
-	label labelSearch "关键词筛选" width:70 height:25 pos:[15,42]	
-	edittext edtSearch "" width:150 height:17 pos:[80,41] toolTip:"关键词筛选"
+	label labelSearch "↓词缀筛选↓" width:70 height:25 pos:[15,65]	
+	edittext edtFilterStr "" width:150 height:17 pos:[80,41] toolTip:"关键词筛选"
 	button btnGetClipboardPic "获取剪切板图片" width:95 height:20 pos:[235,40] \
 	border:false toolTip:"获取剪切板图片"
 	button btnFilterPrefix "+常用词缀+" border:false \
-	height:20 width:70 pos:[10,62] tooltip:"左：添加过滤\r\n右：取消过滤\r\n选中过滤列表\r\n右击删除条目"
+	height:20 width:70 pos:[10,40] tooltip:"左：添加过滤\r\n右：取消过滤\r\n选中过滤列表\r\n右击删除条目"
 
 	listBox ltbFilterPrefix "" align:#left selection:0 \
 	height:6 width:70 pos:[10,85]
@@ -479,15 +551,15 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	listBox ltbFilesList "" align:#right selection:0 \
 	height:16 width:245 pos:[85,85]
 
-	button btnRefDir1 "<＋＋＋>" border:false \
+	button btnRefDir1 "<＋＋＋>" border:true \
 	height:24 width:70 pos:[10,171] tooltip:"右击可重新添加"
-	button btnRefDir2 "<＋＋＋>" border:false \
+	button btnRefDir2 "<＋＋＋>" border:true \
 	height:24 width:70 pos:[10,197] tooltip:"右击可重新添加"
-	button btnRefDir3 "<＋＋＋>" border:false \
+	button btnRefDir3 "<＋＋＋>" border:true \
 	height:24 width:70 pos:[10,223] tooltip:"右击可重新添加"
-	button btnRefDir4 "<＋＋＋>" border:false \
+	button btnRefDir4 "<＋＋＋>" border:true \
 	height:24 width:70 pos:[10,249] tooltip:"右击可重新添加"
-	button btnTempRefDir "剪切板暂存" border:false \
+	button btnTempRefDir "剪切板暂存" border:true \
 	height:24 width:70 pos:[10,275] tooltip:"右击可重新添加"
 	groupBox grpDate "" width:330 height:30 pos:[5,297]
 	label lblCountTips "" height:15 width:80 pos:[15,307]
@@ -523,7 +595,8 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 		)
 	)
 -------------------------------------↑ 文件排序方法 -------------------------------
-    fn fnRefreshAddress =
+	
+	fn fnRefreshAddress =
 	(
 		if (iniLastRefFolder.dir != "") then edtBrowseFolder.text = iniLastRefFolder.dir
         else (edtBrowseFolder.text = "（打开目录）")
@@ -544,11 +617,12 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	
 	fn fnRefreshList strFilesDir =
 	(
-		local arrFolders     = #()
-		local arrRefFiles    = #()
-		local arrFoldersName = #()
-		local arrFilesName   = #()
-		local tempType       = #()
+		arrAllRefFiles   = #()
+		arrAllRefFolders = #()
+
+		local arrFoldersName       = #()
+		local arrFilesName         = #()
+		local tempType             = #()
 		local arrFilesBeforeFilter = #()
 
 		case of 
@@ -567,9 +641,9 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 				local tempDir = GetDirectories (strFilesDir + "/*")
 				for i in tempDir do 
 				(
-					append arrFolders (substring i 1 (i.count-1))
+					append arrAllRefFolders (substring i 1 (i.count-1))
 				)
-				qsort arrFolders fnPseudoNaturalSort
+				qsort arrAllRefFolders fnPseudoNaturalSort
 				for t in tempType do
 					(arrFilesBeforeFilter += getFiles (strFilesDir + "\\*" + t))
 				qsort arrFilesBeforeFilter fnPseudoNaturalSort
@@ -579,17 +653,35 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 					(
 						if (matchpattern (getfilenamefile i) \
 						pattern:("*" + rolRefTools.ltbFilterPrefix.selected + "*")) then 
-						(append arrRefFiles i)
+						(append arrAllRefFiles i)
 					)
 				)
-				else arrRefFiles = arrFilesBeforeFilter
+				else 
+				(
+					if (rolRefTools.edtFilterStr.text == "") then
+						(arrAllRefFiles = arrFilesBeforeFilter)
+				)
+				if (rolRefTools.edtFilterStr.text != "") then
+				(
+					searchStr = "*" + rolRefTools.edtFilterStr.text + "*"
+					for i in arrFilesBeforeFilter do 
+					(
+						if (matchpattern (getfilenamefile i) \
+						pattern:searchStr) then (append arrAllRefFiles i)
+					)
+				)
+				else 
+				(
+					if (rolRefTools.ltbFilterPrefix.selected == undefined) then
+						(arrAllRefFiles = arrFilesBeforeFilter)
+				)
 				
-				for c in arrFolders where (arrFolders.count != 0) do  --获取文件夹名字,后面切换脚本类别和列表会用到
+				for c in arrAllRefFolders where (arrAllRefFolders.count != 0) do  --获取文件夹名字,后面切换脚本类别和列表会用到
 				(
 					if(c != undefined) then \
 					(append arrFoldersName ("📂 " + (getFilenameFile c)))
 				)
-				for c in arrRefFiles where (arrRefFiles.count != 0) do  --获取文件名字,后面切换脚本类别和列表会用到
+				for c in arrAllRefFiles where (arrAllRefFiles.count != 0) do  --获取文件名字,后面切换脚本类别和列表会用到
 				(
 					if(c != undefined) then \
 					(append arrFilesName ("📄 " + (filenameFromPath c)))
@@ -600,7 +692,8 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 			else (print "rolRefTools: null ref dir")
 		)
 		else messagebox "-------------------------------------\r\n文件夹可能已不存在\r\n请尝试刷新\r\n"
-		lblCountTips.text = "文件：" + arrRefFiles.count as string
+		lblCountTips.text = "文件：" + arrAllRefFiles.count as string
+		return rolRefTools.ltbFilesList.items
 	)
 
 	fn fnOpenRefDir =
@@ -611,13 +704,14 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 		str += "createDialog rolAddRefFolder pos:mouse.screenpos"
 		execute str
 	)
-    
+
     on rolRefTools open do 
     (
         btnRefreshFolder.images   = #("UVWUnwrapModes_16i.bmp","UVWUnwrapModes_16i.bmp",28,3,3,3,3,true,false)
         btnOpenCurrentDir.images   = #("UVWUnwrapModes_16i.bmp","UVWUnwrapModes_16i.bmp",28,5,5,5,5,true,false)
         fnSaveConfig ()  ---------------脚本位置等赋值
 		fnSetConfig ()  ----------------保存位置信息到ini文件
+		fnRefreshFilterItems ()
 		btnRefDir1.text = iniRefFolder1.name
 		btnRefDir2.text = iniRefFolder2.name
 		btnRefDir3.text = iniRefFolder3.name
@@ -693,6 +787,78 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 		(
 			edtBrowseFolder.text = dirOpened
 			fnRefreshList dirOpened
+		)
+	)
+
+	on edtFilterStr changed textStr do 
+	(
+		rolRefTools.ltbFilterPrefix.selection = 0
+		fnRefreshList edtBrowseFolder.text 
+	)
+
+	on btnFilterPrefix pressed do 
+	(
+		if edtFilterStr.text != "" then 
+		(
+			if (findItem iniFilterRefName edtFilterStr.text) != 0 then 
+			(
+				messagebox "-------------------------------------\r\n可能过滤词缀已存在~"
+			)
+			else
+			(
+				append iniFilterRefName edtFilterStr.text
+				fnRefreshFilterItems ()
+				rolRefTools.ltbFilterPrefix.selection = 1
+			)
+		)
+	)
+
+	on ltbFilterPrefix selected id do fnRefreshList edtBrowseFolder.text
+
+	on ltbFilterPrefix rightclick id do
+	(
+		idDel = iniFilterPrefix.count + 1 - id
+		deleteItem iniFilterPrefix idDel
+		fnRefreshFilterItems ()
+	)
+
+	on ltbFilesList doubleClicked id do
+	(
+		if (doesDirectoryExist edtBrowseFolder.text) then
+		(
+			case of
+			(
+				((id <= arrAllRefFolders.count) and (id > 0)):
+				(
+					edtBrowseFolder.text = arrAllRefFolders[id]
+					-- fnRefreshList edtBrowseFolder.text type:arrFileType[rdoFileType.state]
+				)
+				(id > arrAllRefFolders.count):
+				(
+					local idFile = id - arrAllRefFolders.count
+					case of 
+					(
+						(rdoFileType.state == 1):(fnCreateRefPlane arrAllRefFiles[idFile])
+						(rdoFileType.state == 2):(importFile arrAllRefFiles[idFile] #noPrompt using:FBXIMP)
+						(rdoFileType.state == 3):(ramplayer arrAllRefFiles[id] arrAllRefFiles[id])
+						(rdoFileType.state == 4):(fileIn arrAllRefFiles[idFile])
+						(rdoFileType.state == 5):(fnOpenPic arrAllRefFiles[idFile])
+					)
+				)
+			)
+			fnRefreshList edtBrowseFolder.text type:arrFileType[rdoFileType.state]
+		)
+		else 
+		(
+			if edtBrowseFolder.text == "( 最近打开 Max 文件列表 )" then
+			(
+				if doesFileExist arrRecentFiles[id] then 
+				(
+					loadMaxFile (arrRecentFiles[id])
+					local tempDir = getfilenamepath arrRecentFiles[id]
+					fnRefreshList tempDir type:arrFileType[rdoFileType.state]
+				)
+			)
 		)
 	)
 )
