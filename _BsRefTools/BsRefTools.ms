@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 02:57:42
+ * @LastEditTime: 2021-01-03 03:29:57
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -16,6 +16,7 @@ global dotDrawingImage = dotNetclass "System.Drawing.Image"
 global dotNetClipboard = DotNetclass "System.Windows.Forms.Clipboard"
 Global SIOFile         = dotNetClass "System.IO.File"
 Global SIODir          = dotNetClass "System.IO.Directory"
+global dotnetWebClient = dotNetObject "System.Net.WebClient"
 
 struct itemsFolder (name,dir)
 global numCurrentPic = 1
@@ -175,12 +176,11 @@ rcmenu RCmenuRefConfig
 (
 	local myMs = (getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms"
     local startupPath = (getDir #StartupScripts)+ "\\" + "BsRefTools.ms"
-	local dotnetWebClient = dotNetObject "System.Net.WebClient"
 
     subMenu "初见"
     (menuItem menuTips1 "    双击文件创建参考" enabled:false
 	menuItem menuTips2 "    右击文件打开菜单" enabled:false
-	menuItem menuUpdate "下载更新")
+	menuItem menuUpdate "    下载更新并安装")
 
 	subMenu "工具栏按钮"
 	(menuItem submConfigAddToolBar "添加"
@@ -373,18 +373,20 @@ rcmenu RCmenuRefConfig
 	on submConfigCleanMat picked do with undo on
 	(
 		if (queryBox "是否彻底清理所有参考图并整理材质球？      \r\n" \
-		title:"清理参考图" beep:false) then
-		(
-			fnCleanRefPlaneAndMat ()
-		)
+		title:"清理参考图" beep:false) then(fnCleanRefPlaneAndMat ())
 	)
 
-	on dotnetWebClient picked do 
+	on menuUpdate picked do 
 	(
-		local dlURL = ""
-		local dlDir = (getdir #temp) + "\\BsDownload\\"
-		dotnetWebClient.downloadFile dlURL dlDir
-		filein (dlDir + "_BsRefTools.mzp")
+		local dlURL = "https://cdn.jsdelivr.net/gh/AnimatorBullet/BsReferenceTools@main/_BsRefTools/_BsRefTools.mzp"
+		local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
+		if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
+		(makedir ((getdir #temp) + "\\BsDownload"))
+		if(doesFileExist dlFile) do fnDelFileDir dlFile
+		dotnetWebClient.downloadFile dlURL dlFile
+		dotnetWebClient.dispose()
+		format "\t_BsRefTools.mzp 下载完成,准备安装\n"
+		filein dlFile
 	)
 
 	on menuJoinGroup picked do 
