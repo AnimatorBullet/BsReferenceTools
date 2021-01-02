@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 03:54:01
+ * @LastEditTime: 2021-01-03 04:08:07
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -378,7 +378,7 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
-		local dlURL = "https://cdn.jsdelivr.net/gh/AnimatorBullet/BsReferenceTools@main/_BsRefTools/_BsRefTools.mzp"
+		local dlURL = "https://cdn.jsdelivr.net/gh/AnimatorBullet/BsReferenceTools/_BsRefTools/_BsRefTools.mzp"
 		local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
 		if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
 		(makedir ((getdir #temp) + "\\BsDownload"))
