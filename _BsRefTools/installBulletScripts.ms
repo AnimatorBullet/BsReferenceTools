@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-20 00:51:15
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 03:30:54
+ * @LastEditTime: 2021-01-03 03:40:47
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -15,7 +15,7 @@ Global posMouMoved = [0,0]
 Global SIOFile = dotNetClass "System.IO.File"			---文件操作
 Global SIODir = dotNetClass "System.IO.Directory"		---文件夹操作
 
-global nameBsScript = "BsRefTools"
+global nameBsScript = "BsRefTools_v0.1"
 Global msBullet = "BsRefTools.ms"
 Global tempScript = ((getdir #temp) + "\\" + msBullet)
 
