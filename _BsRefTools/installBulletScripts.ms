@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-20 00:51:15
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 14:41:34
+ * @LastEditTime: 2021-01-04 16:35:30
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -264,6 +264,8 @@ rollout rolBsInstall " BulletScripts 安装工具 " width:380 height:185
 	)
 	on btnInstall pressed do
 	(
+		messagebox ("若安装卡住或者失败请手动处理~        \r\n\r\n使用WinRar解压mzp,将BsRefTools.ms脚本移至\r\n\r\n" + \
+			((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms" + "\r\n\r\nTips：\r\n双击文件操作，中键文件弹出预览或菜单，\r\n右键返回上层，遇到问题先管理员启动Max")) beep:false
 		btnInstall.enabled = false
 		pbInstall.value = 0
 		tmrInstall.active = true
