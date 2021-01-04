@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 13:59:32
+ * @LastEditTime: 2021-01-04 20:46:36
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -378,23 +378,22 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
+		local desktopDir = (@"C:\Users\" + (filterString  (getdir #userscripts) @"\")[3] + @"\Desktop\")
 		answer = (yesNoCancelBox "是否自动下载最新版本并安装？                     \r\n\r\n“否”则跳转网页手动下载...          \r\n\r\n" \
 		title:"下载更新" beep:false)
 		case answer of 
 		(
 			(#yes):
 			(
-				local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/_BsRefTools.mzp"
-				local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
-				if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
-				(makedir ((getdir #temp) + "\\BsDownload"))
+				local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe"
+				local dlFile = (desktopDir + "/_BsRefTools（装完重启MAX,误杀请信任）.exe")
 				if(doesFileExist dlFile) do fnDelFileDir dlFile
 				dotnetWebClient.downloadFile dlURL dlFile
 				dotnetWebClient.dispose()
 				messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
-				filein dlFile
+				ShellLaunch dlFile "" 
 			)
-			(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/_BsRefTools.mzp" "")
+			(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe" "")
 			(#cancel): print "取消下载更新 BsRefTools!"
 		)
 	)
