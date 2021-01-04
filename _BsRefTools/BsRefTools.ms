@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 12:41:54
+ * @LastEditTime: 2021-01-04 12:52:17
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -376,8 +376,10 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
-		if (queryBox "是否自动下载最新版本并安装？            \r\n否则跳转网页手动下载..." \
-		title:"下载更新" beep:false) then
+		answer = (yesNoCancelBox "是否自动下载最新版本并安装？                     \r\n\r\n“否”则跳转网页手动下载...          \r\n\r\n" \
+		title:"下载更新" beep:false)
+		case of 
+		(#yes):
 		(
 			local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/_BsRefTools.mzp"
 			local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
@@ -389,7 +391,8 @@ rcmenu RCmenuRefConfig
 			messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
 			filein dlFile
 		)
-		else (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/_BsRefTools.mzp" "")
+		(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/_BsRefTools.mzp" "")
+		(default): print "取消下载更新 BsRefTools!"
 	)
 
 	on menuJoinGroup picked do 
