@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 20:56:01
+ * @LastEditTime: 2021-01-04 21:17:14
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -392,6 +392,8 @@ rcmenu RCmenuRefConfig
 				dotnetWebClient.dispose()
 				messagebox ("下载完成,准备安装...\r\n\r\n安装完成后请手动删除安装包：\r\n\r\n" + dlFile + "          ")
 				ShellLaunch dlFile ""
+				try(destroydialog rolAddRefFolder)catch()
+				try(destroydialog rolRefTools)catch()
 			)
 			(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe" "")
 			(#cancel): print "取消下载更新 BsRefTools!"
