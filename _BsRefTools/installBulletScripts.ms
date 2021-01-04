@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-20 00:51:15
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 13:10:04
+ * @LastEditTime: 2021-01-04 14:41:34
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -183,7 +183,7 @@ rollout rolBsInstall " BulletScripts 安装工具 " width:380 height:185
 	
 	on rolBsInstall close do
 	(
-		if (queryBox "是否立即清理安装缓存？\r\n会清理max的temp目录\r\n建议不清理                \r\n" \
+		if (queryBox "是否立即清理安装缓存？\r\n\r\n会清理max的temp目录\r\n\r\n建议不清理                \r\n" \
 		title:"清理安装缓存" beep:false defaultButton:2) then
 		(
 			arrCleanFiles = getFiles (getDir #temp + "\\*.*")
@@ -251,7 +251,7 @@ rollout rolBsInstall " BulletScripts 安装工具 " width:380 height:185
 			tmrInstall.active = false
 			btnInstall.enabled = true
 			-- colorman.reInitIcons()
-			if (queryBox "是否添加工具栏按钮？              \r\n(可能需等待数秒时间)\r\n        " \
+			if (queryBox "是否添加工具栏按钮？              \r\n\r\n(可能需等待数秒时间)\r\n\r\n        " \
 			title:"添加工具栏按钮" beep:false) then
 			(
 				fn_updateInterface tbxResult ("工具栏按钮添加成功...\r\n\r\n安装已完成可退出。\r\n\r\n-... ..- .-.. .-.. . - .-.-.- ...\r\n作者: Bullet.S          2019.08\r\nanimator.bullet@foxmail.com")
@@ -259,7 +259,7 @@ rollout rolBsInstall " BulletScripts 安装工具 " width:380 height:185
 				addToolBarButton nameMytool "BulletTools" nameMytool
 			)
 			messagebox ("安装完成,请按F11查看详情,若失败请手动处理~        \r\n\r\n使用WinRar解压mzp,将BsRefTools.ms脚本移至\r\n\r\n" + \
-			((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms" + "\r\n\r\nTips：双击文件操作，中键文件弹出预览或菜单。")) beep:false
+			((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms" + "\r\n\r\nTips：\r\n双击文件操作，中键文件弹出预览或菜单，\r\n右键返回上层，遇到问题先管理员启动Max")) beep:false
 		)
 	)
 	on btnInstall pressed do
