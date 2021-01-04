@@ -1,7 +1,0 @@
-name "BsReferenceTools"
-version 0.1
-  
-extract to "$temp"
-  
-run "installBulletScripts.ms"
-drop "installBulletScripts.ms"
