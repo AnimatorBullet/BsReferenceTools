@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 12:53:36
+ * @LastEditTime: 2021-01-04 12:55:54
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -378,7 +378,7 @@ rcmenu RCmenuRefConfig
 	(
 		answer = (yesNoCancelBox "是否自动下载最新版本并安装？                     \r\n\r\n“否”则跳转网页手动下载...          \r\n\r\n" \
 		title:"下载更新" beep:false)
-		case of 
+		case answer of 
 		(
 			(#yes):
 			(
@@ -393,7 +393,7 @@ rcmenu RCmenuRefConfig
 				filein dlFile
 			)
 			(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/_BsRefTools.mzp" "")
-			(default): print "取消下载更新 BsRefTools!"
+			(#cancel): print "取消下载更新 BsRefTools!"
 		)
 	)
 
