@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-20 00:51:15
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 12:44:10
+ * @LastEditTime: 2021-01-04 13:10:04
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -259,7 +259,7 @@ rollout rolBsInstall " BulletScripts 安装工具 " width:380 height:185
 				addToolBarButton nameMytool "BulletTools" nameMytool
 			)
 			messagebox ("安装完成,请按F11查看详情,若失败请手动处理~        \r\n\r\n使用WinRar解压mzp,将BsRefTools.ms脚本移至\r\n\r\n" + \
-			((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms" + "\r\n\r\nTips：双击文件操作，右击文件弹出预览或菜单。")) beep:false
+			((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms" + "\r\n\r\nTips：双击文件操作，中键文件弹出预览或菜单。")) beep:false
 		)
 	)
 	on btnInstall pressed do

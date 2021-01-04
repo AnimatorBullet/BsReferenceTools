@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 12:55:54
+ * @LastEditTime: 2021-01-04 13:59:32
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -327,6 +327,8 @@ rcmenu RCmenuRefConfig
 		if (submConfigAutoLoad.checked == true) then 
 		(
 			fnDelFileDir startupPath
+			(messagebox ("已取消自启: " + filenameFromPath startupPath \
+				+ "        \r\n") beep:false title:"取消自启")
 			submConfigAutoLoad.checked = false
 		)
 		else 
@@ -534,25 +536,27 @@ rollout rolAddRefFolder "添加参考文件夹" width:340 height:80
 	)
 )
 
-rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
+rollout rolRefTools "[参考工具]-BsRefTools_v0.1" width:340 height:332
 (
 	groupbox grpMain "" \
 	width:330 height:327 pos:[5,0]
 	editText edtBrowseFolder "" text:"" labelOnTop:true align:#right \
-	height:20 fieldWidth:230 pos:[45,12] readOnly:true 
+	height:20 fieldWidth:215 pos:[63,12] readOnly:true 
+	button btnLastFolder "↑" height:20 width:20 pos:[10,12] border:true \
+	tooltip:"返回上层目录，也可右击文件或工具空白处"
 	button btnOpenAddress "..." align:#right tooltip:"选择打开目录" \
-	height:20 width:30 pos:[10,12] border:true
+	height:20 width:30 pos:[30,12] border:true
 	button btnOpenCurrentDir "打开" tooltip:"打开当前文件夹" \
 	height:20 width:25 pos:[305,12] border:false
 	button btnRefreshFolder "R" align:#left border:false \
-	height:20 width:25 pos:[278,12] tooltip:"左：刷新列表\r\n右：重置场景"
+	height:20 width:25 pos:[279,12] tooltip:"左：刷新列表\r\n右：重置场景"
 	
 	label labelSearch "↓词缀筛选↓" width:70 height:25 pos:[15,65]	
-	edittext edtFilterStr "" width:150 height:17 pos:[80,41] toolTip:"关键词筛选"
-	button btnGetClipboardPic "获取剪切板图片" width:95 height:20 pos:[235,40] \
+	edittext edtFilterStr "" width:150 height:17 pos:[80,40] toolTip:"关键词筛选"
+	button btnGetClipboardPic "获取剪切板图片" width:95 height:25 pos:[235,35] \
 	border:false toolTip:"获取剪切板图片"
 	button btnFilterPrefix "+常用词缀+" border:false \
-	height:20 width:70 pos:[10,40] tooltip:"左：添加过滤\r\n右：取消过滤\r\n选中过滤列表\r\n右击删除条目"
+	height:25 width:70 pos:[10,35] tooltip:"左：添加过滤\r\n右：取消过滤\r\n选中过滤列表\r\n右击删除条目"
 
 	listBox ltbFilterPrefix "" align:#left selection:0 \
 	height:6 width:70 pos:[10,85]
@@ -561,21 +565,21 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	listBox ltbFilesList "" align:#right selection:0 \
 	height:16 width:245 pos:[85,85]
 
-	button btnRefDir1 "<＋＋＋>" border:true \
+	button btnRefDir1 "" border:true \
 	height:24 width:70 pos:[10,171] tooltip:"右击可重新添加"
-	button btnRefDir2 "<＋＋＋>" border:true \
+	button btnRefDir2 "" border:true \
 	height:24 width:70 pos:[10,197] tooltip:"右击可重新添加"
-	button btnRefDir3 "<＋＋＋>" border:true \
+	button btnRefDir3 "" border:true \
 	height:24 width:70 pos:[10,223] tooltip:"右击可重新添加"
-	button btnRefDir4 "<＋＋＋>" border:true \
+	button btnRefDir4 "" border:true \
 	height:24 width:70 pos:[10,249] tooltip:"右击可重新添加"
-	button btnTempRefDir "剪切板暂存" border:true \
-	height:24 width:70 pos:[10,275] tooltip:"右击可重新添加"
+	button btnTempRefDir "<剪切缓存>" border:true \
+	height:24 width:70 pos:[10,275] tooltip:"剪切板图片缓存目录"
 	groupBox grpDate "" width:330 height:30 pos:[5,297]
 	label lblCountTips "" height:15 width:80 pos:[15,307]
 	label lblDateTime "" height:15 width:130 pos:[120,307] 
 	HyperLink lnkLink "miHoYo_Bullet.S" color:myfgColor hovercolor:myClickColor visitedcolor:myClickColor \
-	pos:[245,307] address:"https://space.bilibili.com/2031113"
+	pos:[245,307] address:"https://www.anibullet.com/"
 
 -----------------------------------------------------------------------------
 	fn getFilesequenceFile f &base &digits = 
@@ -627,7 +631,6 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	
 	fn fnRefreshList strFilesDir =
 	(
-		-- strFilesDir = "@" + strFilesDir
 		arrAllRefFiles   = #()
 		arrAllRefFolders = #()
 
@@ -700,11 +703,22 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 				rolRefTools.ltbFilesList.items = arrFoldersName + arrFilesName
 				rolRefTools.edtBrowseFolder.text = strFilesDir
 			)
-			-- else (print "rolRefTools: null ref dir")
 		)
-		else messagebox "-------------------------------------\r\n文件夹可能已不存在\r\n请尝试刷新\r\n"
+		else messagebox "-------------------------------------\r\n文件夹可能已不存在\r\n\r\n请尝试刷新\r\n\r\n-------------------------------------"
 		lblCountTips.text = "文件：" + arrAllRefFiles.count as string
 		return rolRefTools.ltbFilesList.items
+	)
+
+	fn fnGetLastFolder strFolder =
+	(
+		local strLastFolder = ""
+		if ((strFolder != "") and (doesDirectoryExist strFolder)) then
+		(
+			local arrFilterStr = filterstring strFolder @"\"
+			for i = 1 to (arrFilterStr.count - 1) do (strLastFolder = strLastFolder  + arrFilterStr[i] + "\\")
+		)
+		if (strLastFolder == "") then strLastFolder = strFolder
+		return strLastFolder
 	)
 
 	fn fnOpenRefDir =
@@ -716,6 +730,20 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 		execute str
 	)
 
+	fn fnFreshRefDirText =
+	(
+		if (iniRefFolder1.name != "") then (btnRefDir1.text = iniRefFolder1.name) else (btnRefDir1.text = "<＋＋＋>")
+		if (iniRefFolder2.name != "") then (btnRefDir2.text = iniRefFolder2.name) else (btnRefDir2.text = "<＋＋＋>")
+		if (iniRefFolder3.name != "") then (btnRefDir3.text = iniRefFolder3.name) else (btnRefDir3.text = "<＋＋＋>")
+		if (iniRefFolder4.name != "") then (btnRefDir4.text = iniRefFolder4.name) else (btnRefDir4.text = "<＋＋＋>")
+	)
+
+	on rolRefTools rbuttondown pos do 
+	(
+		tempLastFolder = fnGetLastFolder edtBrowseFolder.text
+		fnRefreshList tempLastFolder
+	)
+
     on rolRefTools open do 
     (
         btnRefreshFolder.images   = #("UVWUnwrapModes_16i.bmp","UVWUnwrapModes_16i.bmp",28,3,3,3,3,true,false)
@@ -723,13 +751,9 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
         fnSaveConfig ()  ---------------脚本位置等赋值
 		fnSetConfig ()  ----------------保存位置信息到ini文件
 		fnRefreshFilterItems ()
-		btnRefDir1.text = iniRefFolder1.name
-		btnRefDir2.text = iniRefFolder2.name
-		btnRefDir3.text = iniRefFolder3.name
-		btnRefDir4.text = iniRefFolder4.name
+		fnFreshRefDirText ()
 		fnRefreshList iniLastRefFolder.dir
         ltbFilterPrefix.selection = 0
-		lblCountTips.text = "文件：" + (rolRefTools.ltbFilterPrefix.items.count as string)
         lblDateTime.text = dateTime.Year as string + "/" + dateTime.Month as string + "/" \
 		+ dateTime.Day as string + "  星期" + dayWeek[mod (getUniversalTime())[3] 7] as string
     )
@@ -778,6 +802,12 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	on btnRefDir4 rightclick do (tempAddFolderID = "4";fnOpenRefDir ())
 
 	on btnRefreshFolder pressed do fnRefreshList edtBrowseFolder.text
+
+	on btnLastFolder pressed do 
+	(
+		tempLastFolder = fnGetLastFolder edtBrowseFolder.text
+		fnRefreshList tempLastFolder
+	)
 
 	on btnTempRefDir pressed do 
 	(
@@ -828,8 +858,8 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 
 	on ltbFilterPrefix rightclick id do
 	(
-		idDel = iniFilterPrefix.count + 1 - id
-		deleteItem iniFilterPrefix idDel
+		idDel = iniFilterRefName.count + 1 - id
+		deleteItem iniFilterRefName idDel
 		fnRefreshFilterItems ()
 	)
 
@@ -850,30 +880,21 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 					case of 
 					(
 						(rdoFileType.state == 1):(fnCreateRefPlane arrAllRefFiles[idFile])
-						(rdoFileType.state == 2):(importFile arrAllRefFiles[idFile] #noPrompt using:FBXIMP)
-						(rdoFileType.state == 3):(ramplayer arrAllRefFiles[id] arrAllRefFiles[id])
-						(rdoFileType.state == 4):(fileIn arrAllRefFiles[idFile])
-						(rdoFileType.state == 5):(fnOpenPic arrAllRefFiles[idFile])
+						(rdoFileType.state == 2):()
+						(rdoFileType.state == 3):()
+						(rdoFileType.state == 4):()
 					)
 				)
 			)
-			fnRefreshList edtBrowseFolder.text type:arrFileType[rdoFileType.state]
-		)
-		else 
-		(
-			if edtBrowseFolder.text == "( 最近打开 Max 文件列表 )" then
-			(
-				if doesFileExist arrRecentFiles[id] then 
-				(
-					loadMaxFile (arrRecentFiles[id])
-					local tempDir = getfilenamepath arrRecentFiles[id]
-					fnRefreshList tempDir type:arrFileType[rdoFileType.state]
-				)
-			)
+			fnRefreshList edtBrowseFolder.text
 		)
 	)
+	on ltbFilesList rightclick id do
+	(
+		tempLastFolder = fnGetLastFolder edtBrowseFolder.text
+		fnRefreshList tempLastFolder
+	)
 )
-
 createDialog rolRefTools menu:RCmenuRefConfig \
 pos:iniPosRefTools fgcolor:myfgColor
 
