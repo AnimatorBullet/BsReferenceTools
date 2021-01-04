@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-03 04:33:30
+ * @LastEditTime: 2021-01-04 12:41:54
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -70,6 +70,7 @@ fnGetColorTheme() ----获取当前主题是深色还是浅色,来更改文字颜
 fn fnGetConfig attr nameAttrClass nameAttr valueAttr =  --设置初始信息方法
 (
 	attr = (GetINISetting BulletConfig nameAttrClass nameAttr) as string  --先提取文件中的记录
+	if ((matchpattern nameAttr  pattern:"RefFolder*") or (nameAttr == "LastRefFolder"))then (attr = substituteString attr "dir:" "dir:@")
 	if attr == "" then attr = (execute valueAttr) else (attr = execute attr)  --判断记录为空与否得到需要的记录参数
 )
 fn fnSaveConfig =  --引用上面方法提出需要的参数
@@ -177,10 +178,7 @@ rcmenu RCmenuRefConfig
 	local myMs = (getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms"
     local startupPath = (getDir #StartupScripts)+ "\\" + "BsRefTools.ms"
 
-    subMenu "初见"
-    (menuItem menuTips1 "    双击文件创建参考" enabled:false
-	menuItem menuTips2 "    右击文件打开菜单" enabled:false
-	menuItem menuUpdate "    下载更新并安装")
+    menuItem menuUpdate "更新"
 
 	subMenu "工具栏按钮"
 	(menuItem submConfigAddToolBar "添加"
@@ -378,15 +376,20 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
-		local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/_BsRefTools.mzp"
-		local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
-		if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
-		(makedir ((getdir #temp) + "\\BsDownload"))
-		if(doesFileExist dlFile) do fnDelFileDir dlFile
-		dotnetWebClient.downloadFile dlURL dlFile
-		dotnetWebClient.dispose()
-		messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
-		filein dlFile
+		if (queryBox "是否自动下载最新版本并安装？            \r\n否则跳转网页手动下载..." \
+		title:"下载更新" beep:false) then
+		(
+			local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/_BsRefTools.mzp"
+			local dlFile = (getdir #temp) + "\\BsDownload\\_BsRefTools.mzp"
+			if(doesDirectoryExist ((getdir #temp) + "\\BsDownload") == false) do
+			(makedir ((getdir #temp) + "\\BsDownload"))
+			if(doesFileExist dlFile) do fnDelFileDir dlFile
+			dotnetWebClient.downloadFile dlURL dlFile
+			dotnetWebClient.dispose()
+			messagebox "_BsRefTools.mzp 下载完成,准备安装\r\n如果版本号不对请一小时后再点击更新或去网站下载            "
+			filein dlFile
+		)
+		else (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/_BsRefTools.mzp" "")
 	)
 
 	on menuJoinGroup picked do 
@@ -516,9 +519,9 @@ rollout rolAddRefFolder "添加参考文件夹" width:340 height:80
 	(
 		if ((edtDirStr.text != "") and (edtAddDirName.text != "")) then
 		(
-			str = "iniRefFolder" + tempAddFolderID + " = itemsFolder name:\"" + \
-			edtAddDirName.text + "\" dir:\"" + edtDirStr.text +"\""
-			str += "\r\nrolRefTools.btnRefDir" + tempAddFolderID + ".text = \"" + edtAddDirName.text + "\""
+			str = "iniRefFolder" + tempAddFolderID + " = itemsFolder name:\"<" + \
+			edtAddDirName.text + ">\" dir:@\"" + edtDirStr.text +"\""
+			str += "\r\nrolRefTools.btnRefDir" + tempAddFolderID + ".text = \"<" + edtAddDirName.text + ">\""
 			execute str
 			try(destroydialog rolAddRefFolder)catch()
 			fnSetConfig ()
@@ -619,6 +622,7 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	
 	fn fnRefreshList strFilesDir =
 	(
+		-- strFilesDir = "@" + strFilesDir
 		arrAllRefFiles   = #()
 		arrAllRefFolders = #()
 
@@ -691,7 +695,7 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 				rolRefTools.ltbFilesList.items = arrFoldersName + arrFilesName
 				rolRefTools.edtBrowseFolder.text = strFilesDir
 			)
-			else (print "rolRefTools: null ref dir")
+			-- else (print "rolRefTools: null ref dir")
 		)
 		else messagebox "-------------------------------------\r\n文件夹可能已不存在\r\n请尝试刷新\r\n"
 		lblCountTips.text = "文件：" + arrAllRefFiles.count as string
@@ -735,28 +739,28 @@ rollout rolRefTools "BsRefTools_v0.1" width:340 height:332
 	on btnRefDir1 pressed do 
 	(
 		tempAddFolderID = "1"
-		if (iniRefFolder1 != "") then (fnRefreshList iniRefFolder1.dir)
+		if ((iniRefFolder1.dir != "") and ( iniRefFolder1.dir != undefined)) then (fnRefreshList iniRefFolder1.dir)
 		else(fnOpenRefDir ())
 	)
 
 	on btnRefDir2 pressed do 
 	(
 		tempAddFolderID = "2"
-		if (iniRefFolder2 != "") then (fnRefreshList iniRefFolder2.dir)
+		if ((iniRefFolder2.dir != "") and ( iniRefFolder2.dir != undefined)) then (fnRefreshList iniRefFolder2.dir)
 		else(fnOpenRefDir ())
 	)
 
 	on btnRefDir3 pressed do 
 	(
 		tempAddFolderID = "3"
-		if (iniRefFolder3 != "") then (fnRefreshList iniRefFolder3.dir)
+		if ((iniRefFolder3.dir != "") and ( iniRefFolder3.dir != undefined)) then (fnRefreshList iniRefFolder3.dir)
 		else(fnOpenRefDir ())
 	)
 
 	on btnRefDir4 pressed do 
 	(
 		tempAddFolderID = "4"
-		if (iniRefFolder4 != "") then (fnRefreshList iniRefFolder4.dir)
+		if ((iniRefFolder4.dir != "") and ( iniRefFolder4.dir != undefined)) then (fnRefreshList iniRefFolder4.dir)
 		else(fnOpenRefDir ())
 	)
 
