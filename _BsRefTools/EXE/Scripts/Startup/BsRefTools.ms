@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-05 17:59:56
+ * @LastEditTime: 2021-01-05 18:13:08
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -179,7 +179,12 @@ rcmenu RCmenuRefConfig
 	local myMs = (getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms"
     local startupPath = (getDir #StartupScripts)+ "\\" + "BsRefTools.ms"
 
-    menuItem menuUpdate "更新"
+	subMenu "更新"
+	(
+		menuItem menuUpdate "一键更新"
+		menuItem menuForceUpdate "强制更新"
+	)
+    
 
 	subMenu "工具栏按钮"
 	(menuItem submConfigAddToolBar "添加"
@@ -318,7 +323,7 @@ rcmenu RCmenuRefConfig
 		enableSceneRedraw()
 	)
 
-	fn fnCheckUpdate isUpdate:false = 
+	fn fnCheckUpdate isForceUpdate:false = 
 	(
 		local result = undefined
 
@@ -328,7 +333,7 @@ rcmenu RCmenuRefConfig
 			local verURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/version.dat"
 			local onlineVersion = (dotNetObject "System.Net.WebClient").downloadString verURL
 
-			if isUpdate then
+			if (isForceUpdate == false) then
 			(
 				if (currentVersion != onlineVersion) then (LaterVersion_installed = false)
 				else (LaterVersion_installed = true)
@@ -342,9 +347,9 @@ rcmenu RCmenuRefConfig
 			(
 				local webRoot = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe"
 				local dlFile = (getdir #temp) + "\\_BsRefTools（装完重启MAX,误杀请信任）.exe"
-				local Root = symbolicPaths.getPathValue "$Max"  --root folder in HDD
+				local Root = symbolicPaths.getPathValue "$Max"  --max根目录
 
-				if (doesFileExist dlFile) then (try(fnDelFileDir dlFile)catch(messageBox ("可能因为权限无法清除旧版本下载, 请手动删除:\r\n\r\n"+dlFile)))
+				if (doesFileExist dlFile) then (try(fnDelFileDir dlFile)catch(messageBox ("可能因为权限无法清除旧版本下载, 请手动删除:\r\n\r\n"+dlFile);ShellLaunch (getdir #temp) ""))
 
 				try((dotNetObject "System.Net.WebClient").downloadFile webRoot dlFile)
 				catch( print ( (getCurrentException()) + "  " + dlFile )  )
@@ -428,7 +433,18 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
-		fnCheckUpdate isUpdate:true
+		try(destroydialog rolAddRefFolder)catch()
+		try(destroydialog rolRefTools)catch()
+		fnCheckUpdate isForceUpdate:false
+		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+	)
+
+	on menuForceUpdate picked do 
+	(
+		try(destroydialog rolAddRefFolder)catch()
+		try(destroydialog rolRefTools)catch()
+		fnCheckUpdate isForceUpdate:true
+		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
 	)
 
 	on menuJoinGroup picked do 
