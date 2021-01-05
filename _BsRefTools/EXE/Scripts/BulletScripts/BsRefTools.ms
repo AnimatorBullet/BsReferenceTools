@@ -3,13 +3,14 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-04 20:56:01
+ * @LastEditTime: 2021-01-05 17:59:56
  * @Email: animator.bullet@foxmail.com
  */
 
 try(destroydialog rolAddRefFolder)catch()
 try(destroydialog rolRefTools)catch()
 
+global currentVersion = "0.1.1beta"
 Global BulletConfig = execute ("@\"" + (getDir #maxData) + "\\BulletConfig.ini\"")  --配置文件路径
 
 global dotDrawingImage = dotNetclass "System.Drawing.Image"
@@ -317,6 +318,55 @@ rcmenu RCmenuRefConfig
 		enableSceneRedraw()
 	)
 
+	fn fnCheckUpdate isUpdate:false = 
+	(
+		local result = undefined
+
+		if internet.CheckConnection url:"https://gitee.com" force:true == true then -- 检查网络是否能连接
+		(
+			local LaterVersion_installed = true
+			local verURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/version.dat"
+			local onlineVersion = (dotNetObject "System.Net.WebClient").downloadString verURL
+
+			if isUpdate then
+			(
+				if (currentVersion != onlineVersion) then (LaterVersion_installed = false)
+				else (LaterVersion_installed = true)
+			)
+			else (LaterVersion_installed = false)
+
+			if LaterVersion_installed do (messageBox  ("您已安装最新版本：" + onlineVersion + "\r\n\r\n若与本地不对应请稍后重试~        ") title:"最新版本" beep:false;result = OK)
+
+			if not LaterVersion_installed AND (queryBox ("远程最新版本为: " + onlineVersion + "\r\n本地当前版本为: " + currentVersion + \
+				"\r\n\r\n是否立即下载更新并安装脚本?\r\n\r\n(建议只更新正式版,beta仅供测试不保证稳定)        ") title:"是否更新脚本") do 
+			(
+				local webRoot = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe"
+				local dlFile = (getdir #temp) + "\\_BsRefTools（装完重启MAX,误杀请信任）.exe"
+				local Root = symbolicPaths.getPathValue "$Max"  --root folder in HDD
+
+				if (doesFileExist dlFile) then (try(fnDelFileDir dlFile)catch(messageBox ("可能因为权限无法清除旧版本下载, 请手动删除:\r\n\r\n"+dlFile)))
+
+				try((dotNetObject "System.Net.WebClient").downloadFile webRoot dlFile)
+				catch( print ( (getCurrentException()) + "  " + dlFile )  )
+				ShellLaunch dlFile ""
+				local restart = queryBox  "请检查F11侦听器有无报错,是否重启3dsMax?          " title:"下载完成请继续安装程序" beep:true
+				if restart do (
+					local file = symbolicPaths.getPathValue "$Max" + "\\3dsmax.exe"
+					shellLaunch file
+					quitMAX()
+				)
+				result = OK
+			)
+		)
+		else
+		(
+			--检查网络是否能连接
+			if internet.CheckConnection url:"https://gitee.com" force:true == true then (messagebox "下载服务器当前不可用,请稍后再试";result = undefined)
+			else (messageBox "无网络连接";result = undefined)
+		)
+		result
+	)
+
     on RCmenuRefConfig open do
 	(
 		if(SIOFile.Exists startupPath) then (submConfigAutoLoad.checked = true)
@@ -378,24 +428,7 @@ rcmenu RCmenuRefConfig
 
 	on menuUpdate picked do 
 	(
-		local desktopDir = (@"C:\Users\" + (filterString  (getdir #userscripts) @"\")[3] + @"\Desktop\")
-		answer = (yesNoCancelBox "是否自动下载最新版本并安装？                     \r\n\r\n“否”则跳转网页手动下载...          \r\n\r\n" \
-		title:"下载更新" beep:false)
-		case answer of 
-		(
-			(#yes):
-			(
-				local dlURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe"
-				local dlFile = (desktopDir + "\_BsRefTools（装完重启MAX,误杀请信任）.exe")
-				if(doesFileExist dlFile) do fnDelFileDir dlFile
-				dotnetWebClient.downloadFile dlURL dlFile
-				dotnetWebClient.dispose()
-				messagebox ("下载完成,准备安装...\r\n\r\n安装完成后请手动删除安装包：\r\n\r\n" + dlFile + "          ")
-				ShellLaunch dlFile ""
-			)
-			(#no): (shellLaunch "https://gitee.com/acebullet/BsReferenceTools/blob/main/_BsRefTools/EXE/_BsRefTools%EF%BC%88%E8%A3%85%E5%AE%8C%E9%87%8D%E5%90%AFMAX,%E8%AF%AF%E6%9D%80%E8%AF%B7%E4%BF%A1%E4%BB%BB%EF%BC%89.exe" "")
-			(#cancel): print "取消下载更新 BsRefTools!"
-		)
+		fnCheckUpdate isUpdate:true
 	)
 
 	on menuJoinGroup picked do 
@@ -535,7 +568,7 @@ rollout rolAddRefFolder "添加参考文件夹" width:340 height:80
 	)
 )
 
-rollout rolRefTools "[参考工具]-BsRefTools_v0.1" width:340 height:332
+rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 height:332
 (
 	groupbox grpMain "" \
 	width:330 height:327 pos:[5,0]
