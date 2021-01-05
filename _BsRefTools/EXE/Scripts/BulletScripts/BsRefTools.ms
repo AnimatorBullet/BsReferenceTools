@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-05 18:13:08
+ * @LastEditTime: 2021-01-05 19:02:37
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -181,8 +181,9 @@ rcmenu RCmenuRefConfig
 
 	subMenu "更新"
 	(
-		menuItem menuUpdate "一键更新"
-		menuItem menuForceUpdate "强制更新"
+		menuItem mitemUpdate "一键更新"
+		menuItem mItemForceUpdate "强制更新"
+		menuItem mItemUninstall "卸载"
 	)
     
 
@@ -356,6 +357,7 @@ rcmenu RCmenuRefConfig
 				ShellLaunch dlFile ""
 				local restart = queryBox  "请检查F11侦听器有无报错,是否重启3dsMax?          " title:"下载完成请继续安装程序" beep:true
 				if restart do (
+					CheckForSave ()
 					local file = symbolicPaths.getPathValue "$Max" + "\\3dsmax.exe"
 					shellLaunch file
 					quitMAX()
@@ -431,7 +433,7 @@ rcmenu RCmenuRefConfig
 		title:"清理参考图" beep:false) then(fnCleanRefPlaneAndMat ())
 	)
 
-	on menuUpdate picked do 
+	on mitemUpdate picked do 
 	(
 		try(destroydialog rolAddRefFolder)catch()
 		try(destroydialog rolRefTools)catch()
@@ -439,12 +441,23 @@ rcmenu RCmenuRefConfig
 		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
 	)
 
-	on menuForceUpdate picked do 
+	on mItemForceUpdate picked do 
 	(
 		try(destroydialog rolAddRefFolder)catch()
 		try(destroydialog rolRefTools)catch()
 		fnCheckUpdate isForceUpdate:true
 		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+	)
+
+	on mItemUninstall picked do 
+	(
+		local deletFile1 = ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+		local deletFile2 = ((getDir #Scripts)+ "\\startup\\" + "BsRefTools.ms")
+		try(destroydialog rolAddRefFolder)catch()
+		try(destroydialog rolRefTools)catch()
+		try(fnDelFileDir deletFile1;fnDelFileDir deletFile2) catch()
+		if (queryBox ("可能因为权限无法清除, 若删除失败请手动删除:          \r\n\r\n"+ deletFile1 + "\r\n" + deletFile2 + "                  ") title:"手动清除残留") then (ShellLaunch (getDir #Scripts) "")
+		else (ShellLaunch (getDir #Scripts) "")
 	)
 
 	on menuJoinGroup picked do 
