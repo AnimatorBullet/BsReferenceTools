@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-05 19:02:37
+ * @LastEditTime: 2021-01-06 14:17:49
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -372,6 +372,13 @@ rcmenu RCmenuRefConfig
 			else (messageBox "无网络连接";result = undefined)
 		)
 		result
+	)
+
+	fn fnCheckVersion =
+	(
+		local verURL = "https://gitee.com/acebullet/BsReferenceTools/raw/main/_BsRefTools/EXE/version.dat"
+		local onlineVersion = (dotNetObject "System.Net.WebClient").downloadString verURL
+		if (currentVersion != onlineVersion) then  (fnCheckUpdate isForceUpdate:true)
 	)
 
     on RCmenuRefConfig open do
@@ -817,6 +824,7 @@ rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 
         ltbFilterPrefix.selection = 0
         lblDateTime.text = dateTime.Year as string + "/" + dateTime.Month as string + "/" \
 		+ dateTime.Day as string + "  星期" + dayWeek[mod (getUniversalTime())[3] 7] as string
+		RCmenuRefConfig.fnCheckVersion ()
     )
 
     on rolRefTools close do -- 关闭记忆浮动窗口位置
