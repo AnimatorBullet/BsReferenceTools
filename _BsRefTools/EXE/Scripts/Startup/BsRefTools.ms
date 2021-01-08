@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-06 14:17:49
+ * @LastEditTime: 2021-01-07 13:12:52
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -21,7 +21,7 @@ global dotnetWebClient = dotNetObject "System.Net.WebClient"
 
 struct itemsFolder (name,dir)
 global numCurrentPic = 1
-global tempSavePath  = (getdir #temp) + "\\tempReferencePic"
+global tempSavePath  = (getdir #temp) + @"\\tempReferencePic"
 
 global dateTime = (dotNetClass "System.DateTime").Now
 global dayWeek  = #( "一", "二", "三", "四", "五", "六", "日")
@@ -128,7 +128,7 @@ fn fnSaveClipBoardPic =
     local arrTempFiles = #()
     local arrTempid = #(0)
 
-    arrTempFiles = getFiles (tempSavePath + "\\*.*")
+    arrTempFiles = getFiles (tempSavePath + @"\\*.*")
     for i in arrTempFiles where arrTempFiles.count != 0 do
     (
         if (MatchPattern (getfilenameFile i) pattern:"*tempReferencePic*") then
@@ -139,7 +139,7 @@ fn fnSaveClipBoardPic =
         )
     )
     tempImage = dotNetClipboard.GetImage()
-    tempSaveImage = (tempSavePath + "\\tempReferencePic" + \
+    tempSaveImage = (tempSavePath + @"\\tempReferencePic" + \
     ((arrTempid[arrTempid.count] + 1) as string) +".png")
     if tempImage != undefined do 
     (
@@ -176,8 +176,8 @@ fn fnGetClipboardPic =
 
 rcmenu RCmenuRefConfig
 (
-	local myMs = (getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms"
-    local startupPath = (getDir #StartupScripts)+ "\\" + "BsRefTools.ms"
+	local myMs = (getDir #Scripts)+ @"\\BulletScripts\\BsRefTools.ms"
+    local startupPath = (getDir #StartupScripts)+ @"\\BsRefTools.ms"
 
 	subMenu "更新"
 	(
@@ -445,7 +445,7 @@ rcmenu RCmenuRefConfig
 		try(destroydialog rolAddRefFolder)catch()
 		try(destroydialog rolRefTools)catch()
 		fnCheckUpdate isForceUpdate:false
-		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+		fileIn ((getDir #Scripts)+ @"\\BulletScripts\\BsRefTools.ms")
 	)
 
 	on mItemForceUpdate picked do 
@@ -453,13 +453,13 @@ rcmenu RCmenuRefConfig
 		try(destroydialog rolAddRefFolder)catch()
 		try(destroydialog rolRefTools)catch()
 		fnCheckUpdate isForceUpdate:true
-		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+		fileIn ((getDir #Scripts)+ @"\\BulletScripts\\BsRefTools.ms")
 	)
 
 	on mItemUninstall picked do 
 	(
-		local deletFile1 = ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
-		local deletFile2 = ((getDir #Scripts)+ "\\startup\\" + "BsRefTools.ms")
+		local deletFile1 = ((getDir #Scripts)+ @"\\BulletScripts\\BsRefTools.ms")
+		local deletFile2 = ((getDir #Scripts)+ @"\\startup\\BsRefTools.ms")
 		try(destroydialog rolAddRefFolder)catch()
 		try(destroydialog rolRefTools)catch()
 		try(fnDelFileDir deletFile1;fnDelFileDir deletFile2) catch()
@@ -727,7 +727,7 @@ rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 
 				)
 				qsort arrAllRefFolders fnPseudoNaturalSort
 				for t in tempType do
-					(arrFilesBeforeFilter += getFiles (strFilesDir + "\\*" + t))
+					(arrFilesBeforeFilter += getFiles (strFilesDir + @"\\*" + t))
 				qsort arrFilesBeforeFilter fnPseudoNaturalSort
 				if (rolRefTools.ltbFilterPrefix.selected != undefined) then
 				(
@@ -783,7 +783,7 @@ rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 
 		if ((strFolder != "") and (doesDirectoryExist strFolder)) then
 		(
 			local arrFilterStr = filterstring strFolder @"\"
-			for i = 1 to (arrFilterStr.count - 1) do (strLastFolder = strLastFolder  + arrFilterStr[i] + "\\")
+			for i = 1 to (arrFilterStr.count - 1) do (strLastFolder = strLastFolder  + arrFilterStr[i] + @"\\")
 		)
 		if (strLastFolder == "") then strLastFolder = strFolder
 		return strLastFolder
@@ -975,7 +975,7 @@ toolTip:"BsRefTools"
 (
 	on execute do
 	(
-		fileIn ((getDir #Scripts)+ "\\BulletScripts\\" + "BsRefTools.ms")
+		fileIn ((getDir #Scripts)+ @"\\BulletScripts\\BsRefTools.ms")
 	)
 )
 ----------------------------------------------------------------------------------
