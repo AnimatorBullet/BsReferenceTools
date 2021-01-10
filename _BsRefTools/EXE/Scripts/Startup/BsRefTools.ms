@@ -3,7 +3,7 @@
  * @Author: Bullet.S
  * @Date: 2020-12-29 01:12:45
  * @LastEditors: Bullet.S
- * @LastEditTime: 2021-01-07 13:12:52
+ * @LastEditTime: 2021-01-10 15:45:52
  * @Email: animator.bullet@foxmail.com
  */
 
@@ -12,6 +12,9 @@ try(destroydialog rolRefTools)catch()
 
 global currentVersion = "0.1.1beta"
 Global BulletConfig = execute ("@\"" + (getDir #maxData) + "\\BulletConfig.ini\"")  --配置文件路径
+
+global spm = (dotNetclass "System.Net.ServicePointManager")
+spm.SecurityProtocol = spm.SecurityProtocol.Tls12
 
 global dotDrawingImage = dotNetclass "System.Drawing.Image"
 global dotNetClipboard = DotNetclass "System.Windows.Forms.Clipboard"
@@ -806,6 +809,14 @@ rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 
 		if (iniRefFolder4.name != "") then (btnRefDir4.text = iniRefFolder4.name) else (btnRefDir4.text = "<＋＋＋>")
 	)
 
+	fn fnRefreshDate =
+	(
+		local arrTime = (getUniversalTime())
+		local dayWeekID = (mod arrTime[3] 7) as integer
+		lblDateTime.text = dateTime.Year as string + "/" + dateTime.Month as string + "/" \
+		+ dateTime.Day as string + "  星期" + arrDayWeek[dayWeekID + 1] as string
+	)
+
 	on rolRefTools rbuttondown pos do 
 	(
 		tempLastFolder = fnGetLastFolder edtBrowseFolder.text
@@ -822,8 +833,7 @@ rollout rolRefTools ("[参考工具]-BsRefTools_v" + currentVersion)  width:340 
 		fnFreshRefDirText ()
 		fnRefreshList iniLastRefFolder.dir
         ltbFilterPrefix.selection = 0
-        lblDateTime.text = dateTime.Year as string + "/" + dateTime.Month as string + "/" \
-		+ dateTime.Day as string + "  星期" + dayWeek[mod (getUniversalTime())[3] 7] as string
+        fnRefreshDate ()
 		RCmenuRefConfig.fnCheckVersion ()
     )
 
